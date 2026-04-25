@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-SUS AF - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+        .header-bg {
+            background: linear-gradient(90deg, #3b5998 0%, #4a69bd 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .sidebar {
+            width: 60px;
+            background-color: white;
+            border-right: 1px solid #e5e7eb;
+            transition: width 0.3s ease;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .sidebar.expanded {
+            width: 260px;
+        }
+        .nav-text {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+        .sidebar.expanded .nav-text {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .plugin-gradient {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+        .step-content {
+            display: none;
+        }
+        .step-content.active {
+            display: block;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .signature-box {
+            border: 2px dashed #cbd5e1;
+            transition: all 0.3s ease;
+        }
+        .signature-box.signed {
+            border-color: #22c55e;
+            background-color: #f0fdf4;
+        }
+
+        /* Popup Estilo Toast (Canto Superior Direito) */
+        #urgency-popup {
+            top: 80px;
+            right: 20px;
+            width: 320px;
+            transform: translateX(400px);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+        }
+        #urgency-popup.show {
+            transform: translateX(0);
+        }
+
+        /* Linha conectora da rota */
+        .route-line {
+            height: 2px;
+            background: repeating-linear-gradient(90deg, #3b82f6 0px, #3b82f6 10px, transparent 10px, transparent 20px);
+            flex-grow: 1;
+            margin: 0 15px;
+            position: relative;
+        }
+        .route-line::after {
+            content: "\f0d1";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            top: -12px;
+            left: 45%;
+            color: #3b82f6;
+            background: white;
+            padding: 0 10px;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Popup de Urgência -->
+    <div id="urgency-popup" class="fixed bg-white border-l-4 border-red-500 rounded-xl shadow-2xl p-4 flex flex-col space-y-3 card-shadow">
+        <div class="flex justify-between items-start">
+            <div class="flex items-center space-x-2 text-red-600 font-bold text-xs uppercase tracking-tighter">
+                <i class="fas fa-exclamation-circle animate-pulse"></i>
+                <span>Atenção: Risco Crítico</span>
+            </div>
+            <button onclick="closePopup()" class="text-gray-300 hover:text-gray-500"><i class="fas fa-times"></i></button>
+        </div>
+        <div>
+            <p class="text-sm font-bold text-gray-800">Sobra Detectada: Captopril 25mg</p>
+            <p class="text-[11px] text-gray-500 leading-tight">Lote 2024AX com vencimento próximo identificado na Policlínica do Catolé.</p>
+        </div>
+        <button onclick="startUrgencyFlow()" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold py-2 px-4 rounded-lg transition-colors shadow-sm">
+            Resolver e Evitar Desperdício
+        </button>
+    </div>
+
+    <!-- Header Superior -->
+    <header class="header-bg text-white h-16 flex items-center justify-between px-4 sticky top-0 z-50">
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2">
+                <div class="bg-white p-1 rounded cursor-pointer" onclick="window.location.reload()">
+                    <img src="https://vignette.wikia.nocookie.net/logopedia/images/b/b9/SUS_Brasil_logo.svg/revision/latest?cb=20210214154942" alt="Logo SUS" class="h-8">
+                </div>
+                <div>
+                    <h1 class="text-xs font-bold leading-tight uppercase">e-SUS AF</h1>
+                    <p class="text-[10px] opacity-90 uppercase">Assistência Farmacêutica</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 max-w-2xl px-8 hidden md:block">
+            <div class="bg-blue-800 bg-opacity-30 rounded-full py-2 px-4 flex items-center justify-between border border-blue-400 border-opacity-30">
+                <div class="flex items-center space-x-2 text-xs">
+                    <i class="fas fa-user-circle text-lg opacity-80"></i>
+                    <span>Selecionar perfil</span>
+                </div>
+                <div class="text-[10px] text-right">
+                    <p class="font-bold">MUNICIPAL - CAMPINA GRANDE - PB - POLICLINICA DO CATOLE</p>
+                    <p class="opacity-80">FARMACÊUTICO</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <div class="bg-blue-600 rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm">UT</div>
+            <i class="fas fa-chevron-down text-xs opacity-80"></i>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Sidebar lateral -->
+        <aside id="mainSidebar" class="sidebar flex flex-col py-4 z-40">
+            <button onclick="toggleSidebar()" class="w-full flex items-center px-[18px] py-2 text-blue-800 hover:bg-gray-100 transition mb-4">
+                <i class="fas fa-bars text-xl"></i>
+                <span class="nav-text ml-4 font-bold">Menu</span>
+            </button>
+
+            <nav class="flex-1 flex flex-col space-y-2">
+                <button onclick="switchTab('dashboard')" class="w-full flex items-center px-[18px] py-3 text-blue-900 hover:bg-blue-50 transition border-r-4 border-transparent hover:border-blue-600">
+                    <i class="fas fa-home text-lg"></i>
+                    <span class="nav-text ml-5 font-medium">Início</span>
+                </button>
+
+                <div class="relative group">
+                    <button onclick="togglePluginSubmenu()" class="w-full flex items-center px-[18px] py-3 text-gray-600 hover:bg-gray-50 transition">
+                        <i class="fas fa-plug text-lg"></i>
+                        <span class="nav-text ml-6 font-medium flex-1 text-left">Plugins</span>
+                        <i class="fas fa-chevron-right text-[10px] nav-text transition-transform" id="pluginChevron"></i>
+                    </button>
+                    <div id="pluginSubmenu" class="hidden flex-col bg-gray-50 overflow-hidden">
+                        <button onclick="startPlugin()" class="w-full flex items-center pl-16 pr-4 py-3 text-sm text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition">
+                            <span class="font-bold">Zé Remedinho</span>
+                        </button>
+                    </div>
+                </div>
+
+                <button class="w-full flex items-center px-[18px] py-3 text-gray-600 hover:bg-gray-50 transition">
+                    <i class="fas fa-chart-bar text-lg"></i>
+                    <span class="nav-text ml-6 font-medium">Relatórios</span>
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Área de Conteúdo -->
+        <main class="flex-1 overflow-y-auto bg-[#f0f2f5]">
+            
+            <!-- ABA DASHBOARD -->
+            <div id="tab-dashboard" class="p-6 md:px-12 animate-fade-in">
+                <div class="flex items-center space-x-2 mb-6 text-blue-900">
+                    <i class="fas fa-home text-sm"></i>
+                    <h2 class="text-lg font-semibold">Bem-vindo(a) <span class="font-bold">Usuario Treinamento</span></h2>
+                </div>
+
+                <div class="bg-[#5c85d6] rounded-xl p-8 mb-8 relative overflow-hidden text-white flex items-center">
+                    <div class="relative z-10 w-full md:w-2/3">
+                        <h3 class="text-2xl font-bold mb-2">Este é o e-SUS Assistência Farmacêutica!</h3>
+                        <p class="text-blue-50 opacity-90 text-sm leading-relaxed">
+                            Acompanhe as notificações do sistema para garantir a eficiência regional.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white rounded-xl p-6 card-shadow border border-gray-100 h-64">
+                        <h4 class="text-blue-800 font-bold text-center mb-4">Número de usuários atendidos</h4>
+                        <div class="flex items-end justify-center space-x-4 h-32 mt-4">
+                            <div class="w-12 bg-blue-100 h-8 rounded-t"></div>
+                            <div class="w-12 bg-blue-200 h-16 rounded-t"></div>
+                            <div class="w-12 bg-blue-400 h-24 rounded-t"></div>
+                            <div class="w-12 bg-blue-600 h-32 rounded-t"></div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 card-shadow border border-gray-100 h-64 text-center">
+                         <h4 class="text-blue-800 font-bold mb-4">Alertas Pendentes</h4>
+                         <div class="bg-red-50 text-red-700 p-4 rounded-xl text-sm font-bold flex items-center justify-center space-x-2">
+                             <i class="fas fa-exclamation-triangle"></i>
+                             <span>1 Item com risco de vencimento</span>
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA PLUGIN ZÉ REMEDINHO -->
+            <div id="tab-plugin" class="hidden p-6 md:px-12 animate-fade-in h-full">
+                
+                <!-- Home do Plugin: Lista de Sugestões -->
+                <div id="plugin-list" class="step-content active">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-black text-blue-900 tracking-tight">Oportunidades de Movimentação</h3>
+                        <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase">3 Sugestões Ativas</span>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div onclick="goToStep(2)" class="bg-white p-5 rounded-2xl border border-red-100 card-shadow flex items-center justify-between hover:border-red-400 transition-all cursor-pointer group">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-red-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-red-200">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-gray-800">Captopril 25mg</p>
+                                    <p class="text-xs text-red-600 font-medium italic">Prioridade Máxima: Risco de vencimento em 15 dias</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-gray-300 group-hover:text-red-500 transition-colors"></i>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-gray-100 card-shadow flex items-center justify-between opacity-80 hover:opacity-100 transition-all">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-gray-800">Paracetamol 500mg</p>
+                                    <p class="text-xs text-gray-500">Otimização: Sugestão de remanejamento preventivo por baixo giro.</p>
+                                </div>
+                            </div>
+                            <span class="text-[9px] font-bold text-yellow-600 bg-yellow-50 px-2 py-1 rounded">PENDENTE</span>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-gray-100 card-shadow flex items-center justify-between opacity-80 hover:opacity-100 transition-all">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-truck-loading"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-gray-800">Amoxicilina 250mg</p>
+                                    <p class="text-xs text-gray-500">Logística: Agrupar pedidos para reduzir custo de transporte regional.</p>
+                                </div>
+                            </div>
+                            <span class="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">ANALISAR</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Passo 2: Análise de Risco -->
+                <div id="plugin-step-2" class="step-content animate-fade-in">
+                    <button onclick="goToStep('list')" class="text-xs text-blue-600 font-bold mb-4 flex items-center hover:underline uppercase"><i class="fas fa-arrow-left mr-2"></i> Voltar à Lista</button>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 uppercase text-sm tracking-widest">Análise de Risco Regional</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-2xl border-l-4 border-red-500 card-shadow">
+                            <h4 class="text-red-600 font-bold flex items-center mb-2"><i class="fas fa-exclamation-triangle mr-2"></i> Risco de Vencimento</h4>
+                            <p class="text-sm font-bold">Captopril 25mg - Lote 2024AX</p>
+                            <p class="text-xs text-gray-500">300 unidades ociosas em Policlínica do Catolé.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border-l-4 border-green-500 card-shadow">
+                            <h4 class="text-green-600 font-bold flex items-center mb-2"><i class="fas fa-check-circle mr-2"></i> Match Encontrado</h4>
+                            <p class="text-sm font-bold">UBS Sede - Queimadas (PB)</p>
+                            <p class="text-xs text-gray-500">Demanda reprimida de 450 unidades identificada.</p>
+                        </div>
+                    </div>
+                    <button onclick="goToStep(3)" class="bg-blue-600 text-white font-bold px-8 py-3 rounded-xl shadow-lg">Prosseguir para Logística</button>
+                </div>
+
+                <!-- Passo 3: Rota e Logística -->
+                <div id="plugin-step-3" class="step-content animate-fade-in">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 uppercase text-sm tracking-widest">Rotas e Logística</h3>
+                    <div class="bg-white p-8 rounded-3xl card-shadow border border-gray-100 mb-8">
+                        <div class="flex items-center justify-between max-w-lg mx-auto">
+                            <!-- Origem -->
+                            <div class="text-center">
+                                <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm border border-blue-200">
+                                    <i class="fas fa-building-user text-xl"></i>
+                                </div>
+                                <p class="text-[10px] font-bold text-gray-400 uppercase">Origem</p>
+                                <p class="text-sm font-black text-gray-800">Campina Grande - PB</p>
+                            </div>
+
+                            <!-- Linha Conectora -->
+                            <div class="route-line"></div>
+
+                            <!-- Destino -->
+                            <div class="text-center">
+                                <div class="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm border border-green-200">
+                                    <i class="fas fa-location-dot text-xl"></i>
+                                </div>
+                                <p class="text-[10px] font-bold text-gray-400 uppercase">Destino</p>
+                                <p class="text-sm font-black text-gray-800">Patos - PB</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 pt-6 border-t border-gray-50 flex justify-center space-x-8 text-[11px] font-bold text-gray-500 uppercase tracking-tighter">
+                            <span class="flex items-center"><i class="fas fa-road mr-2 text-blue-500"></i> BR-230</span>
+                            <span class="flex items-center"><i class="fas fa-clock mr-2 text-blue-500"></i> ~2h 45min</span>
+                            <span class="flex items-center"><i class="fas fa-gas-pump mr-2 text-blue-500"></i> 172 km</span>
+                        </div>
+                    </div>
+                    <button onclick="goToStep(4)" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-100">Confirmar e Solicitar Aprovação</button>
+                </div>
+
+                <!-- Passo 4: Aprovação Dupla Digital -->
+                <div id="plugin-step-4" class="step-content animate-fade-in">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2 uppercase text-sm tracking-widest">Aprovação Dupla Digitalizada</h3>
+                    <p class="text-gray-500 text-sm mb-8">Validação obrigatória para movimentação interestadual/municipal.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div id="sig-rt" class="signature-box p-6 rounded-2xl bg-white text-center flex flex-col items-center">
+                            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4"><i class="fas fa-mortar-pestle"></i></div>
+                            <h4 class="font-bold text-gray-800 uppercase text-xs">Farmacêutico RT</h4>
+                            <div id="input-rt" class="w-full mt-4">
+                                <input type="password" placeholder="Senha" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl mb-3 text-center text-sm">
+                                <button onclick="sign('rt')" class="w-full bg-gray-800 text-white py-2 rounded-xl text-xs font-bold uppercase">Autorizar</button>
+                            </div>
+                            <div id="success-rt" class="hidden text-green-600 font-bold text-sm items-center mt-4"><i class="fas fa-check-circle mr-2"></i> Assinado</div>
+                        </div>
+
+                        <div id="sig-gestor" class="signature-box p-6 rounded-2xl bg-white text-center flex flex-col items-center">
+                            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4"><i class="fas fa-user-tie"></i></div>
+                            <h4 class="font-bold text-gray-800 uppercase text-xs">Gestor Municipal</h4>
+                            <div id="input-gestor" class="w-full mt-4">
+                                <input type="password" placeholder="Senha" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl mb-3 text-center text-sm">
+                                <button onclick="sign('gestor')" class="w-full bg-gray-800 text-white py-2 rounded-xl text-xs font-bold uppercase">Autorizar</button>
+                            </div>
+                            <div id="success-gestor" class="hidden text-green-600 font-bold text-sm items-center mt-4"><i class="fas fa-check-circle mr-2"></i> Assinado</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-12 text-center">
+                        <button id="final-btn" disabled class="opacity-50 cursor-not-allowed bg-green-600 text-white font-bold px-12 py-4 rounded-2xl transition-all uppercase tracking-widest text-sm" onclick="goToStep(5)">Finalizar Transferência</button>
+                    </div>
+                </div>
+
+                <!-- Passo 5: Sucesso e Rastreabilidade -->
+                <div id="plugin-step-5" class="step-content animate-fade-in text-center py-12">
+                    <div class="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6"><i class="fas fa-check-double"></i></div>
+                    <h3 class="text-3xl font-bold text-gray-800 mb-2 tracking-tighter">Transferência Concluída!</h3>
+                    <p class="text-gray-500 mb-8 font-medium">Movimentação registrada com sucesso no sistema nacional.</p>
+                    
+                    <div class="max-w-md mx-auto bg-white p-6 rounded-3xl card-shadow border border-gray-100 text-left mb-8">
+                        <h4 class="text-sm font-bold text-blue-900 mb-4 uppercase tracking-wider flex items-center">
+                            <i class="fas fa-file-contract mr-2"></i> Documentação de Rastreabilidade
+                        </h4>
+                        <div class="space-y-3">
+                            <button class="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-blue-50 rounded-xl border border-gray-200 transition-colors group">
+                                <div class="flex items-center space-x-3 text-xs">
+                                    <i class="fas fa-file-pdf text-red-500 text-lg"></i>
+                                    <div>
+                                        <p class="font-bold text-gray-700">Guia de Remanejamento Regional</p>
+                                        <p class="text-gray-400">PDF - Ref: #AF-GR-2024-001</p>
+                                    </div>
+                                </div>
+                                <i class="fas fa-download text-gray-300 group-hover:text-blue-500"></i>
+                            </button>
+                            <button class="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-blue-50 rounded-xl border border-gray-200 transition-colors group">
+                                <div class="flex items-center space-x-3 text-xs">
+                                    <i class="fas fa-file-pdf text-red-500 text-lg"></i>
+                                    <div>
+                                        <p class="font-bold text-gray-700">Termo de Responsabilidade Técnica</p>
+                                        <p class="text-gray-400">PDF - Assinado Digitalmente</p>
+                                    </div>
+                                </div>
+                                <i class="fas fa-download text-gray-300 group-hover:text-blue-500"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button onclick="switchTab('dashboard')" class="text-blue-600 font-bold hover:underline uppercase text-xs tracking-widest">Voltar ao Início</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        let signedRT = false;
+        let signedGestor = false;
+
+        window.onload = () => {
+            setTimeout(() => {
+                const popup = document.getElementById('urgency-popup');
+                if(popup) popup.classList.add('show');
+            }, 2000);
+        };
+
+        function closePopup() {
+            document.getElementById('urgency-popup').classList.remove('show');
+        }
+
+        function startUrgencyFlow() {
+            closePopup();
+            switchTab('plugin');
+            goToStep(2);
+        }
+
+        function toggleSidebar() {
+            document.getElementById('mainSidebar').classList.toggle('expanded');
+        }
+
+        function togglePluginSubmenu() {
+            const sidebar = document.getElementById('mainSidebar');
+            if(!sidebar.classList.contains('expanded')) sidebar.classList.add('expanded');
+            const submenu = document.getElementById('pluginSubmenu');
+            submenu.classList.toggle('hidden');
+            submenu.classList.toggle('flex');
+        }
+
+        function switchTab(tabId) {
+            document.getElementById('tab-dashboard').classList.add('hidden');
+            document.getElementById('tab-plugin').classList.add('hidden');
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            if(tabId === 'dashboard') {
+                signedRT = false;
+                signedGestor = false;
+                goToStep('list');
+            }
+        }
+
+        function startPlugin() {
+            switchTab('plugin');
+            goToStep('list');
+        }
+
+        function goToStep(step) {
+            const steps = ['list', 2, 3, 4, 5];
+            steps.forEach(s => {
+                const elId = s === 'list' ? 'plugin-list' : 'plugin-step-' + s;
+                const el = document.getElementById(elId);
+                if(el) el.classList.remove('active');
+            });
+
+            const targetId = step === 'list' ? 'plugin-list' : 'plugin-step-' + step;
+            const target = document.getElementById(targetId);
+            if(target) target.classList.add('active');
+        }
+
+        function sign(type) {
+            if(type === 'rt') {
+                signedRT = true;
+                document.getElementById('sig-rt').classList.add('signed');
+                document.getElementById('input-rt').classList.add('hidden');
+                document.getElementById('success-rt').classList.remove('hidden');
+                document.getElementById('success-rt').classList.add('flex');
+            } else {
+                signedGestor = true;
+                document.getElementById('sig-gestor').classList.add('signed');
+                document.getElementById('input-gestor').classList.add('hidden');
+                document.getElementById('success-gestor').classList.remove('hidden');
+                document.getElementById('success-gestor').classList.add('flex');
+            }
+
+            if(signedRT && signedGestor) {
+                const btn = document.getElementById('final-btn');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.classList.add('hover:bg-green-700', 'shadow-lg');
+            }
+        }
+    </script>
+</body>
+</html>
