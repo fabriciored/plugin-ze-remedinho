@@ -6,6 +6,7 @@
     <title>e-SUS AF - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="https://esusaf.saude.gov.br/assets/imagens/marcas/marca_sistema.svg">
     <style>
         body {
             background-color: #f0f2f5;
@@ -287,7 +288,7 @@
                         </div>
                         <div class="bg-white p-6 rounded-2xl border-l-4 border-green-500 card-shadow">
                             <h4 class="text-green-600 font-bold flex items-center mb-2"><i class="fas fa-check-circle mr-2"></i> Match Encontrado</h4>
-                            <p class="text-sm font-bold">UBS Sede - Queimadas (PB)</p>
+                            <p class="text-sm font-bold">UBS Sede - Patos (PB)</p>
                             <p class="text-xs text-gray-500">Demanda reprimida de 450 unidades identificada.</p>
                         </div>
                     </div>
@@ -330,35 +331,66 @@
                     <button onclick="goToStep(4)" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-100">Confirmar e Solicitar Aprovação</button>
                 </div>
 
-                <!-- Passo 4: Aprovação Dupla Digital -->
-                <div id="plugin-step-4" class="step-content animate-fade-in">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-2 uppercase text-sm tracking-widest">Aprovação Dupla Digitalizada</h3>
-                    <p class="text-gray-500 text-sm mb-8">Validação obrigatória para movimentação interestadual/municipal.</p>
+                <!-- Passo 4: Aprovação Dupla Digital (ATUALIZADO) -->
+                <div id="plugin-step-4" class="step-content animate-fade-in bg-white p-8 rounded-3xl card-shadow border border-gray-100">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2 uppercase text-sm tracking-widest text-center">Aprovação Dupla Digitalizada</h3>
+                    <p class="text-gray-500 text-sm mb-10 text-center">Validação obrigatória para movimentação interestadual/municipal.</p>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div id="sig-rt" class="signature-box p-6 rounded-2xl bg-white text-center flex flex-col items-center">
-                            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4"><i class="fas fa-mortar-pestle"></i></div>
-                            <h4 class="font-bold text-gray-800 uppercase text-xs">Farmacêutico RT</h4>
-                            <div id="input-rt" class="w-full mt-4">
-                                <input type="password" placeholder="Senha" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl mb-3 text-center text-sm">
-                                <button onclick="sign('rt')" class="w-full bg-gray-800 text-white py-2 rounded-xl text-xs font-bold uppercase">Autorizar</button>
+                    <!-- Timeline de Assinaturas -->
+                    <div class="relative max-w-sm mx-auto mb-10 px-6">
+                        <!-- Background da linha -->
+                        <div class="absolute top-7 left-0 w-full px-14 z-0">
+                            <div class="h-1.5 bg-gray-200 rounded-full w-full overflow-hidden">
+                                <div id="timeline-progress" class="h-full w-0 bg-green-500 rounded-full transition-all duration-1000 ease-in-out"></div>
                             </div>
-                            <div id="success-rt" class="hidden text-green-600 font-bold text-sm items-center mt-4"><i class="fas fa-check-circle mr-2"></i> Assinado</div>
                         </div>
 
-                        <div id="sig-gestor" class="signature-box p-6 rounded-2xl bg-white text-center flex flex-col items-center">
-                            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4"><i class="fas fa-user-tie"></i></div>
-                            <h4 class="font-bold text-gray-800 uppercase text-xs">Gestor Municipal</h4>
-                            <div id="input-gestor" class="w-full mt-4">
-                                <input type="password" placeholder="Senha" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl mb-3 text-center text-sm">
-                                <button onclick="sign('gestor')" class="w-full bg-gray-800 text-white py-2 rounded-xl text-xs font-bold uppercase">Autorizar</button>
+                        <!-- Bolas (Nodes) -->
+                        <div class="flex justify-between items-start w-full relative z-10">
+                            <!-- Node Farmacêutico RT -->
+                            <div class="flex flex-col items-center w-28">
+                                <div id="node-rt" class="w-14 h-14 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-xl border-4 border-white shadow-sm transition-colors duration-300">
+                                    <i id="icon-rt" class="fas fa-mortar-pestle"></i>
+                                </div>
+                                <h4 class="font-bold text-gray-800 uppercase text-[10px] mt-3 text-center">Farmacêutico RT</h4>
+                                <span id="status-rt" class="text-[9px] text-gray-400 font-bold uppercase mt-0.5">Aguardando</span>
                             </div>
-                            <div id="success-gestor" class="hidden text-green-600 font-bold text-sm items-center mt-4"><i class="fas fa-check-circle mr-2"></i> Assinado</div>
+
+                            <!-- Node Gestor Municipal -->
+                            <div class="flex flex-col items-center w-28">
+                                <div id="node-gestor" class="w-14 h-14 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-xl border-4 border-white shadow-sm transition-colors duration-300">
+                                    <i id="icon-gestor" class="fas fa-user-tie"></i>
+                                </div>
+                                <h4 class="font-bold text-gray-800 uppercase text-[10px] mt-3 text-center">Gestor Municipal</h4>
+                                <span id="status-gestor" class="text-[9px] text-gray-400 font-bold uppercase mt-0.5">Aguardando</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="mt-12 text-center">
-                        <button id="final-btn" disabled class="opacity-50 cursor-not-allowed bg-green-600 text-white font-bold px-12 py-4 rounded-2xl transition-all uppercase tracking-widest text-sm" onclick="goToStep(5)">Finalizar Transferência</button>
+                    <!-- Controle Único de Autorização -->
+                    <div id="auth-container" class="max-w-xs mx-auto text-center">
+                        
+                        <button id="btn-autorizar" onclick="startAuthorizationFlow()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-xs font-bold uppercase shadow-md transition-all flex items-center justify-center">
+                            <i class="fas fa-fingerprint mr-2 text-lg"></i> Autorizar Movimentação
+                        </button>
+                        
+                        <!-- Mensagem de aguardo (escondida por padrão) -->
+                        <div id="auth-waiting-msg" class="hidden mt-4 text-center">
+                            <i class="fas fa-spinner fa-spin text-blue-500 mb-1 text-lg"></i>
+                            <p class="text-xs text-blue-600 font-bold uppercase">Aguardando Gestor...</p>
+                            <p class="text-[10px] text-gray-400 mt-1">Sincronizando com outro dispositivo</p>
+                        </div>
+                        
+                        <!-- Mensagem de Sucesso (escondida por padrão) -->
+                        <div id="auth-success-msg" class="hidden mt-4 text-center">
+                            <i class="fas fa-check-double text-green-500 mb-1 text-lg"></i>
+                            <p class="text-xs text-green-600 font-bold uppercase">Aprovação Dupla Concluída!</p>
+                        </div>
+                    </div>
+
+                    <!-- Botão Finalizar -->
+                    <div class="mt-10 text-center border-t border-gray-50 pt-8">
+                        <button id="final-btn" disabled class="opacity-30 cursor-not-allowed bg-green-600 text-white font-bold px-12 py-4 rounded-2xl transition-all uppercase tracking-widest text-sm w-full md:w-auto" onclick="goToStep(5)">Finalizar Transferência</button>
                     </div>
                 </div>
 
@@ -404,9 +436,6 @@
     </div>
 
     <script>
-        let signedRT = false;
-        let signedGestor = false;
-
         window.onload = () => {
             setTimeout(() => {
                 const popup = document.getElementById('urgency-popup');
@@ -441,9 +470,9 @@
             document.getElementById('tab-plugin').classList.add('hidden');
             document.getElementById('tab-' + tabId).classList.remove('hidden');
             if(tabId === 'dashboard') {
-                signedRT = false;
-                signedGestor = false;
                 goToStep('list');
+                // Opcional: Aqui poderiamos resetar a UI de aprovação se necessário, 
+                // mas as instruções pediram para não alterar comportamento do restante do site.
             }
         }
 
@@ -465,27 +494,63 @@
             if(target) target.classList.add('active');
         }
 
-        function sign(type) {
-            if(type === 'rt') {
-                signedRT = true;
-                document.getElementById('sig-rt').classList.add('signed');
-                document.getElementById('input-rt').classList.add('hidden');
-                document.getElementById('success-rt').classList.remove('hidden');
-                document.getElementById('success-rt').classList.add('flex');
-            } else {
-                signedGestor = true;
-                document.getElementById('sig-gestor').classList.add('signed');
-                document.getElementById('input-gestor').classList.add('hidden');
-                document.getElementById('success-gestor').classList.remove('hidden');
-                document.getElementById('success-gestor').classList.add('flex');
-            }
+        // Nova Lógica de Aprovação Dupla em Linha do Tempo
+        function startAuthorizationFlow() {
+            const btnAuth = document.getElementById('btn-autorizar');
+            const waitingMsg = document.getElementById('auth-waiting-msg');
+            const successMsg = document.getElementById('auth-success-msg');
+            const timelineProgress = document.getElementById('timeline-progress');
+            const btnFinal = document.getElementById('final-btn');
 
-            if(signedRT && signedGestor) {
-                const btn = document.getElementById('final-btn');
-                btn.disabled = false;
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                btn.classList.add('hover:bg-green-700', 'shadow-lg');
-            }
+            // 1. Desabilita as entradas do usuário
+            btnAuth.disabled = true;
+            btnAuth.classList.add('opacity-50', 'cursor-not-allowed');
+
+            // 2. Transforma o nó do Farmacêutico RT em aprovado (Verde)
+            const nodeRt = document.getElementById('node-rt');
+            const iconRt = document.getElementById('icon-rt');
+            const statusRt = document.getElementById('status-rt');
+
+            nodeRt.classList.remove('bg-gray-100', 'text-gray-400', 'border-white');
+            nodeRt.classList.add('bg-green-500', 'text-white', 'border-green-100');
+            iconRt.className = 'fas fa-check';
+            
+            statusRt.textContent = 'Aprovado';
+            statusRt.classList.remove('text-gray-400');
+            statusRt.classList.add('text-green-600');
+
+            // 3. Preenche a linha até a metade e mostra mensagem aguardando
+            timelineProgress.style.width = '50%';
+            btnAuth.classList.add('hidden');
+            waitingMsg.classList.remove('hidden');
+
+            // 4. Timeout de 5 Segundos para o Gestor "aprovar em outro dispositivo"
+            setTimeout(() => {
+                // Transforma o nó do Gestor Municipal em aprovado (Verde)
+                const nodeGestor = document.getElementById('node-gestor');
+                const iconGestor = document.getElementById('icon-gestor');
+                const statusGestor = document.getElementById('status-gestor');
+
+                nodeGestor.classList.remove('bg-gray-100', 'text-gray-400', 'border-white');
+                nodeGestor.classList.add('bg-green-500', 'text-white', 'border-green-100');
+                iconGestor.className = 'fas fa-check';
+                
+                statusGestor.textContent = 'Aprovado';
+                statusGestor.classList.remove('text-gray-400');
+                statusGestor.classList.add('text-green-600');
+
+                // Completa a linha
+                timelineProgress.style.width = '100%';
+                
+                // Troca mensagens
+                waitingMsg.classList.add('hidden');
+                successMsg.classList.remove('hidden');
+
+                // Libera botão de finalizar a transferência
+                btnFinal.disabled = false;
+                btnFinal.classList.remove('opacity-30', 'cursor-not-allowed');
+                btnFinal.classList.add('hover:bg-green-700', 'shadow-xl', 'transform', 'hover:-translate-y-1');
+            }, 5000);
         }
     </script>
 </body>
