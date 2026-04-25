@@ -383,7 +383,7 @@
                         
                         <!-- Mensagem de Sucesso (escondida por padrão) -->
                         <div id="auth-success-msg" class="hidden mt-4 text-center">
-                            <i class="fas fa-check-double text-green-500 mb-1 text-lg"></i>
+                            <i class="fas fa-check text-green-500 mb-1 text-lg"></i>
                             <p class="text-xs text-green-600 font-bold uppercase">Aprovação Dupla Concluída!</p>
                         </div>
                     </div>
@@ -395,8 +395,8 @@
                 </div>
 
                 <!-- Passo 5: Sucesso e Rastreabilidade -->
-                <div id="plugin-step-5" class="step-content animate-fade-in text-center py-12">
-                    <div class="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6"><i class="fas fa-check-double"></i></div>
+                <div id="plugin-step-5" class="step-content animate-fade-in text-center py-6">
+                    <div class="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6"><i class="fas fa-check"></i></div>
                     <h3 class="text-3xl font-bold text-gray-800 mb-2 tracking-tighter">Transferência Concluída!</h3>
                     <p class="text-gray-500 mb-8 font-medium">Movimentação registrada com sucesso no sistema nacional.</p>
                     
@@ -440,7 +440,7 @@
             setTimeout(() => {
                 const popup = document.getElementById('urgency-popup');
                 if(popup) popup.classList.add('show');
-            }, 5000);
+            }, 1000);
         };
 
         function closePopup() {
@@ -550,7 +550,7 @@
                 btnFinal.disabled = false;
                 btnFinal.classList.remove('opacity-30', 'cursor-not-allowed');
                 btnFinal.classList.add('hover:bg-green-700', 'shadow-xl', 'transform', 'hover:-translate-y-1');
-            }, 7000);
+            }, 2000);
         }
     </script>
 </body>
